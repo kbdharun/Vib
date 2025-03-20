@@ -8,7 +8,7 @@ on:
 
 jobs:
 
-  build:
+  build-linux:
     name: Build
     runs-on: ubuntu-latest
 
@@ -50,3 +50,35 @@ jobs:
          path: |
             vib*
             plugins*.tar.gz
+
+  build-windows:
+      name: Build (Windows)
+      runs-on: windows-latest
+  
+      steps:
+      - uses: actions/checkout@v4
+  
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+  
+      - name: Build vib
+        run: |
+          go get ./...
+          go get github.com/ebitengine/purego
+          make BINARY_NAME=vib-windows-amd64 build
+          mv build/vib-windows-amd64.exe ./
+  
+      - name: Build plugins
+        run: |
+          go get ./...
+          make build-plugins
+          tar czvf plugins-windows-amd64.tar.gz build/plugins
+  
+      - uses: actions/upload-artifact@v4
+        with:
+           name: Vib (Windows)
+           path: |
+              vib-windows-amd64.exe
+              plugins-windows-amd64.tar.gz
